@@ -1,11 +1,17 @@
 #!/bin/sh
 passwd root
-apt-get install ssh -y
+passwd sysadmin
+useradd -m parkit2019 && passwd parkit2019 && usermod -aG sudo parkit2019
+# apt-get install ssh -y
 sed -i '/#PermitRootLogin yes/c\PermitRootLogin no' /etc/ssh/sshd_config
-service sshd restart
+# service sshd restart
 usermod -s /sbin/nologin root && service network-manager restart
+apt-get install iptables
 
 iptables -F
+iptables -A INPUT -p tcp -s 172.20.242.254 -j ACCEPT
+iptables -A INPUT -p tcp -s 172.20.242.200 -j ACCEPT
+iptables -A INPUT -p tcp -s 172.20.242.100 -j ACCEPT
 iptables -A INPUT -p tcp --tcp-flags ALL NONE -j DROP
 iptables -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
 iptables -A INPUT -p tcp --tcp-flags ALL ALL -j DROP
@@ -23,13 +29,18 @@ iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
 iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp -m tcp --dport 53 -j ACCEPT
+# iptables -A OUTPUT -p tcp -m tcp --dport 53 -j ACCEPT
 iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+# iptables -P OUTPUT DROP
 iptables -P OUTPUT ACCEPT
+#IF have to output to specifics 
 iptables -P INPUT DROP
 service iptables save
 service iptables restart
 usermod -s /bin/false sysadmin
 usermod -L sysadmin
+
+
 
 # yum update -y
 # yum upgrade -y
